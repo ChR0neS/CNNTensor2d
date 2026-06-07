@@ -1,4 +1,73 @@
-// Datos iniciales
+// ==========================================
+// MÓDULO 1: IMAGEN A TENSOR (Desde GitHub)
+// ==========================================
+const canvas = document.getElementById('image-canvas');
+const ctx = canvas.getContext('2d');
+const tensorGrid = document.getElementById('tensor-grid');
+
+// Tamaño de nuestra base vectorial m x n
+const M = 15; 
+const N = 15;
+
+// Ejecutar automáticamente al cargar la página web
+window.addEventListener('load', () => {
+    const img = new Image();
+    
+    // Permiso para leer los píxeles en GitHub Pages (CORS)
+    img.crossOrigin = "Anonymous"; 
+    
+    // Nombre exacto de tu archivo
+    img.src = 'foto1.jpg'; 
+
+    img.onload = function() {
+        // Dibujamos la imagen escalada
+        ctx.clearRect(0, 0, M, N);
+        ctx.drawImage(img, 0, 0, M, N);
+        
+        // Extraemos la matriz numérica
+        extractTensorData();
+    }
+
+    img.onerror = function() {
+        if(tensorGrid) {
+            tensorGrid.innerHTML = '<p style="color:#d63031; background:#ffeaa7; padding: 10px; border-radius: 4px;">Error: No se encontró la imagen. Verifica que el archivo se llame exactamente "foto1.jpg" (distingue mayúsculas y minúsculas) y esté en la misma carpeta.</p>';
+        }
+    }
+});
+
+function extractTensorData() {
+    // Obtenemos el arreglo unidimensional RGBA del canvas
+    const imageData = ctx.getImageData(0, 0, M, N).data;
+    tensorGrid.innerHTML = ''; 
+    tensorGrid.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+
+    for (let i = 0; i < M; i++) {
+        for (let j = 0; j < N; j++) {
+            const index = (i * N + j) * 4;
+            const r = imageData[index];
+            const g = imageData[index + 1];
+            const b = imageData[index + 2];
+            
+            // Luminancia para el escalar de intensidad
+            let gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+            
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.innerText = gray;
+            cell.style.backgroundColor = `rgb(${gray}, ${gray}, ${gray})`;
+            // Contraste dinámico para el texto
+            cell.style.color = gray < 128 ? 'white' : 'black';
+            
+            tensorGrid.appendChild(cell);
+        }
+    }
+}
+
+// ==========================================
+// MÓDULO 2: CONVOLUCIÓN INTERACTIVA
+// ==========================================
+
+// Datos iniciales de prueba (Tensor 5x5 y Kernel 3x3)
 const inputData = [
     [2, 1, 0, 2, 1],
     [0, 1, 2, 1, 0],
@@ -14,33 +83,35 @@ const kernelData = [
 ];
 
 let outputData = Array(3).fill().map(() => Array(3).fill(0));
-let currentStep = -1; // -1 significa estado inicial sin calcular
-const maxSteps = 9; // Para una salida de 3x3, hay 9 posiciones
+let currentStep = -1; // Estado inicial sin calcular
+const maxSteps = 9;   // Posiciones totales para salida 3x3
 
 // Funciones de renderizado
 function createGrid(containerId, data, isOutput = false) {
     const container = document.getElementById(containerId);
+    if(!container) return;
+    
     container.innerHTML = '';
     data.forEach((row, i) => {
         row.forEach((val, j) => {
             const div = document.createElement('div');
             div.className = 'cell';
             div.id = `${containerId}-${i}-${j}`;
-            // Si es salida y aún no se calcula, mostrar vacío
+            // Si es salida y aún no se calcula, mostramos vacío
             div.innerText = (isOutput && val === 0 && currentStep === -1) ? '' : val;
             container.appendChild(div);
         });
     });
 }
 
-function init() {
+function initConvolution() {
     createGrid('input-grid', inputData);
     createGrid('kernel-grid', kernelData);
     createGrid('output-grid', outputData, true);
     updateVisuals();
 }
 
-// Lógica de pasos
+// Lógica matemática paso a paso
 function nextStep() {
     if (currentStep < maxSteps - 1) {
         currentStep++;
@@ -51,7 +122,6 @@ function nextStep() {
 
 function prevStep() {
     if (currentStep >= 0) {
-        // Borrar el valor actual de la salida si retrocedemos
         const outRow = Math.floor(currentStep / 3);
         const outCol = currentStep % 3;
         outputData[outRow][outCol] = 0; 
@@ -76,42 +146,47 @@ function calculateCurrentStep() {
 }
 
 function updateVisuals() {
-    // Actualizar botones
-    document.getElementById('btn-prev').disabled = currentStep === -1;
-    document.getElementById('btn-next').disabled = currentStep === maxSteps - 1;
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const formulaDisplay = document.getElementById('formula-display');
+    
+    if(!btnPrev || !btnNext || !formulaDisplay) return;
 
-    // Limpiar resaltados
+    btnPrev.disabled = currentStep === -1;
+    btnNext.disabled = currentStep === maxSteps - 1;
+
+    // Limpiar clases de resaltado
     document.querySelectorAll('.cell').forEach(c => {
         c.classList.remove('highlight-input', 'highlight-kernel', 'highlight-output');
     });
 
-    // Re-renderizar salida para mostrar números actualizados
     createGrid('output-grid', outputData, true);
 
     if (currentStep === -1) {
-        document.getElementById('formula-display').innerText = 'Haz clic en "Siguiente Paso" para comenzar el cálculo.';
+        formulaDisplay.innerText = 'Haz clic en "Siguiente Paso" para comenzar el cálculo.';
         return;
     }
 
     const outRow = Math.floor(currentStep / 3);
     const outCol = currentStep % 3;
     let formulaText = `S(${outRow},${outCol}) = `;
-    let sum = 0;
-
-    // Resaltar Kernel completo siempre durante el cálculo
+    
+    // Resaltar Kernel
     for(let r=0; r<3; r++){
         for(let c=0; c<3; c++){
-            document.getElementById(`kernel-grid-${r}-${c}`).classList.add('highlight-kernel');
+            const kCell = document.getElementById(`kernel-grid-${r}-${c}`);
+            if(kCell) kCell.classList.add('highlight-kernel');
         }
     }
 
-    // Resaltar Entrada y construir fórmula
+    // Resaltar Entrada y construir ecuación
     let terms = [];
     for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
             const inR = outRow + i;
             const inC = outCol + j;
-            document.getElementById(`input-grid-${inR}-${inC}`).classList.add('highlight-input');
+            const iCell = document.getElementById(`input-grid-${inR}-${inC}`);
+            if(iCell) iCell.classList.add('highlight-input');
             
             const valIn = inputData[inR][inC];
             const valKer = kernelData[i][j];
@@ -120,11 +195,12 @@ function updateVisuals() {
     }
     
     // Resaltar Salida
-    document.getElementById(`output-grid-${outRow}-${outCol}`).classList.add('highlight-output');
+    const oCell = document.getElementById(`output-grid-${outRow}-${outCol}`);
+    if(oCell) oCell.classList.add('highlight-output');
     
     formulaText += terms.join(' + ') + ` = ${outputData[outRow][outCol]}`;
-    document.getElementById('formula-display').innerText = formulaText;
+    formulaDisplay.innerText = formulaText;
 }
 
-// Iniciar
-init();
+// Iniciar la simulación interactiva
+initConvolution();
