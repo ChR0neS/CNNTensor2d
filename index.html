@@ -12,19 +12,28 @@
     <p>Análisis de Tensores de Orden 2 en Procesamiento de Imágenes</p>
 
     <div class="upload-section">
+        
         <h2>1. Conversión de Imagen a Tensor ($T \in \mathbb{R}^m \otimes \mathbb{R}^n$)</h2>
         <p>Extracción de la matriz de intensidades en escala de grises $I_{i,j}$ a partir de la imagen alojada en el repositorio.</p>
         
-        <div class="tensor-visualization">
+<div class="tensor-visualization">
             <div class="canvas-container">
-                <h3>Imagen Base (Redimensionada a 15x15)</h3>
+                <h3>Imagen Original</h3>
+                <img id="original-image-display" src="" alt="Cargando imagen original..." style="max-width: 250px; border: 2px solid #2c3e50; border-radius: 4px; display: none;">
+            </div>
+
+            <div class="canvas-container">
+                <h3>Base (Redimensionada a 15x15)</h3>
                 <canvas id="image-canvas" width="15" height="15"></canvas>
             </div>
+            
             <div class="matrix-container">
                 <h3>Matriz del Tensor ($I_{i,j}$)</h3>
                 <div id="tensor-grid" class="grid grid-dynamic"></div>
             </div>
         </div>
+
+        
     </div>
 
     <hr style="width: 80%; margin: 40px auto; border-top: 2px solid #ddd;">
