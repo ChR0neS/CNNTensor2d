@@ -19,8 +19,15 @@ window.addEventListener('load', () => {
     // Nombre exacto de tu archivo
     img.src = 'foto1.jpg'; 
 
-    img.onload = function() {
-        // Dibujamos la imagen escalada
+img.onload = function() {
+        // NUEVO: Mostrar la imagen original en su contenedor
+        const originalImgTag = document.getElementById('original-image-display');
+        if (originalImgTag) {
+            originalImgTag.src = img.src;
+            originalImgTag.style.display = 'block';
+        }
+
+        // Dibujamos la imagen escalada en el canvas 15x15
         ctx.clearRect(0, 0, M, N);
         ctx.drawImage(img, 0, 0, M, N);
         
