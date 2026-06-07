@@ -1,1 +1,91 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
 
+h1 { 
+    color: #2c3e50; 
+}
+
+.container {
+    display: flex;
+    gap: 40px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.matrix-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.grid {
+    display: grid;
+    gap: 4px;
+    background-color: #ddd;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+/* Tamaños de las cuadrículas */
+.grid-5x5 { grid-template-columns: repeat(5, 1fr); }
+.grid-3x3 { grid-template-columns: repeat(3, 1fr); }
+
+/* Resaltados */
+.highlight-input { background-color: #ffeaa7; }
+.highlight-kernel { background-color: #74b9ff; color: white;}
+.highlight-output { background-color: #55efc4; }
+
+.controls {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    background-color: #0984e3;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.2s;
+}
+
+button:hover { background-color: #074b83; }
+button:disabled { background-color: #b2bec3; cursor: not-allowed; }
+
+.formula-box {
+    margin-top: 30px;
+    padding: 15px;
+    background-color: white;
+    border-left: 5px solid #0984e3;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    font-family: monospace;
+    font-size: 1.2em;
+    min-width: 300px;
+    text-align: center;
+}
