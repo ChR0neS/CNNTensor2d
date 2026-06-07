@@ -3,27 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulación de Convolución 2D</title>
+    <title>Producto Tensorial y CNNs</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1>Operación de Convolución (Correlación Cruzada)</h1>
+    <h1>Redes Neuronales Convolucionales (CNN)</h1>
+    <p>Análisis de Tensores de Orden 2 en Procesamiento de Imágenes</p>
+
+    <div class="upload-section">
+        <h2>1. Conversión de Imagen a Tensor ($T \in \mathbb{R}^m \otimes \mathbb{R}^n$)</h2>
+        <p>Extracción de la matriz de intensidades en escala de grises $I_{i,j}$ a partir de la imagen alojada en el repositorio.</p>
+        
+        <div class="tensor-visualization">
+            <div class="canvas-container">
+                <h3>Imagen Base (Redimensionada a 15x15)</h3>
+                <canvas id="image-canvas" width="15" height="15"></canvas>
+            </div>
+            <div class="matrix-container">
+                <h3>Matriz del Tensor ($I_{i,j}$)</h3>
+                <div id="tensor-grid" class="grid grid-dynamic"></div>
+            </div>
+        </div>
+    </div>
+
+    <hr style="width: 80%; margin: 40px auto; border-top: 2px solid #ddd;">
+
+    <h2>2. Operación de Convolución (Correlación Cruzada)</h2>
     <p>Tensor de Entrada (5x5) * Filtro (3x3) = Mapa de Características (3x3)</p>
 
     <div class="container">
         <div class="matrix-container">
-            <h3>Tensor de Entrada (I)</h3>
+            <h3>Tensor de Entrada ($I$)</h3>
             <div id="input-grid" class="grid grid-5x5"></div>
         </div>
 
         <div class="matrix-container">
-            <h3>Filtro (K)</h3>
+            <h3>Filtro ($K$)</h3>
             <div id="kernel-grid" class="grid grid-3x3"></div>
         </div>
 
         <div class="matrix-container">
-            <h3>Salida (S)</h3>
+            <h3>Salida ($S$)</h3>
             <div id="output-grid" class="grid grid-3x3"></div>
         </div>
     </div>
