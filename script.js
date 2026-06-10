@@ -1,49 +1,36 @@
 // ==========================================
-// MÓDULO 1: IMAGEN A TENSOR (Desde GitHub)
+// MÓDULO 1: IMAGEN A TENSOR 
 // ==========================================
 const canvas = document.getElementById('image-canvas');
 const ctx = canvas.getContext('2d');
 const tensorGrid = document.getElementById('tensor-grid');
 
-// Tamaño de nuestra base vectorial m x n
 const M = 15; 
 const N = 15;
 
-// Ejecutar automáticamente al cargar la página web
+// Variable global para almacenar el tensor puramente como matriz matemática
+let tensorMatrix = Array(M).fill().map(() => Array(N).fill(0));
+
 window.addEventListener('load', () => {
     const img = new Image();
-    
-    // Permiso para leer los píxeles en GitHub Pages (CORS)
     img.crossOrigin = "Anonymous"; 
-    
-    // Nombre exacto de tu archivo
     img.src = 'foto1.jpg'; 
 
-img.onload = function() {
-        // NUEVO: Mostrar la imagen original en su contenedor
-        const originalImgTag = document.getElementById('original-image-display');
-        if (originalImgTag) {
-            originalImgTag.src = img.src;
-            originalImgTag.style.display = 'block';
-        }
-
-        // Dibujamos la imagen escalada en el canvas 15x15
+    img.onload = function() {
         ctx.clearRect(0, 0, M, N);
         ctx.drawImage(img, 0, 0, M, N);
-        
-        // Extraemos la matriz numérica
-        extractTensorData();
+        extractTensorData(); // Aplicamos isomorfismo de ida
     }
 
     img.onerror = function() {
         if(tensorGrid) {
-            tensorGrid.innerHTML = '<p style="color:#d63031; background:#ffeaa7; padding: 10px; border-radius: 4px;">Error: No se encontró la imagen. Verifica que el archivo se llame exactamente "foto1.jpg" (distingue mayúsculas y minúsculas) y esté en la misma carpeta.</p>';
+            tensorGrid.innerHTML = '<p style="color:#d63031; background:#ffeaa7; padding: 10px; border-radius: 4px;">Error: No se encontró la imagen. Verifica que el archivo se llame exactamente "foto1.jpg".</p>';
         }
     }
 });
 
+// Función de ida: Espacio Visual -> Espacio Matricial
 function extractTensorData() {
-    // Obtenemos el arreglo unidimensional RGBA del canvas
     const imageData = ctx.getImageData(0, 0, M, N).data;
     tensorGrid.innerHTML = ''; 
     tensorGrid.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
@@ -55,20 +42,49 @@ function extractTensorData() {
             const g = imageData[index + 1];
             const b = imageData[index + 2];
             
-            // Luminancia para el escalar de intensidad
             let gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
             
+            // 1. Guardamos el escalar en la matriz matemática pura
+            tensorMatrix[i][j] = gray;
+            
+            // 2. Renderizamos en la web
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.innerText = gray;
             cell.style.backgroundColor = `rgb(${gray}, ${gray}, ${gray})`;
-            // Contraste dinámico para el texto
             cell.style.color = gray < 128 ? 'white' : 'black';
-            
             tensorGrid.appendChild(cell);
         }
     }
 }
+
+// NUEVO - Función de vuelta: Espacio Matricial -> Espacio Visual
+function applyInverseIsomorphism() {
+    const invCanvas = document.getElementById('inverse-canvas');
+    if (!invCanvas) return;
+    const invCtx = invCanvas.getContext('2d');
+    
+    invCtx.clearRect(0, 0, M, N);
+
+    // Recorremos la matriz pura para reconstruir el estado físico
+    for (let i = 0; i < M; i++) {
+        for (let j = 0; j < N; j++) {
+            const intensity = tensorMatrix[i][j];
+            
+            // Traducimos el escalar a color RGB
+            invCtx.fillStyle = `rgb(${intensity}, ${intensity}, ${intensity})`;
+            
+            // fillRect(x, y, ancho, alto). En matrices: x es columna (j), y es fila (i)
+            invCtx.fillRect(j, i, 1, 1);
+        }
+    }
+}
+
+// ==========================================
+// FIN MÓDULO 1
+// ==========================================
+
+
 
 // ==========================================
 // MÓDULO 2: CONVOLUCIÓN INTERACTIVA
