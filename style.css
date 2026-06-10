@@ -88,4 +88,23 @@ button:disabled { background-color: #b2bec3; cursor: not-allowed; }
     font-size: 1.2em;
     min-width: 300px;
     text-align: center;
+
+/* Nuevas cuadrículas para Módulo 3 (Filtros Separables) */
+.grid-3x1 { grid-template-columns: repeat(1, 1fr); }
+.grid-1x3 { grid-template-columns: repeat(3, 1fr); }
+.grid-3x5 { grid-template-columns: repeat(5, 1fr); }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 }
