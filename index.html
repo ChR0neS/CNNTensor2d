@@ -81,6 +81,67 @@
         Haz clic en "Siguiente Paso" para comenzar el cálculo.
     </div>
 
+
+<hr style="width: 80%; margin: 40px auto; border-top: 2px solid #ddd;">
+        
+
+    <!-- ========================================== -->
+    <!-- SECCIÓN 3: Convolución Separable           -->
+    <!-- ========================================== -->
+    <h2>3. Convolución Separable (Producto Tensorial $K = u \otimes v$)</h2>
+    <p>Demostración empírica de cómo el filtro 2D (Sobel) se factoriza en dos aplicaciones lineales 1D más eficientes.</p>
+
+    <!-- Fase 1 -->
+    <div class="container">
+        <div class="matrix-container">
+            <h3>Tensor Entrada (5x5)</h3>
+            <div id="sep-input-grid" class="grid grid-5x5"></div>
+        </div>
+        <div class="matrix-container">
+            <h3>Vector Columna $u$ (3x1)</h3>
+            <div id="u-grid" class="grid grid-3x1"></div>
+        </div>
+        <div class="matrix-container">
+            <h3>Intermedio (3x5)</h3>
+            <div id="inter-grid" class="grid grid-3x5"></div>
+        </div>
+    </div>
+
+    <!-- Fase 2 -->
+    <div class="container" style="margin-top: 20px;">
+        <div class="matrix-container">
+            <h3>Intermedio (3x5)</h3>
+            <div id="inter-grid-2" class="grid grid-3x5"></div>
+        </div>
+        <div class="matrix-container">
+            <h3>Vector Fila $v$ (1x3)</h3>
+            <div id="v-grid" class="grid grid-1x3"></div>
+        </div>
+        <div class="matrix-container">
+            <h3>Salida Final (3x3)</h3>
+            <div id="sep-output-grid" class="grid grid-3x3"></div>
+        </div>
+    </div>
+
+    <div class="controls" style="margin-bottom: 50px;">
+        <button id="btn-sep-prev" onclick="prevSepPhase()" disabled>Deshacer Fase</button>
+        <button id="btn-sep-next" onclick="nextSepPhase()">Ejecutar Fase</button>
+    </div>
+
+
+
+        
+
+
+
+        
     <script src="script.js"></script>
+
+
+
+
+
+        
 </body>
+    
 </html>
