@@ -20,26 +20,35 @@
         
         <h2>1. Conversión de Imagen a Tensor ($T \in \mathbb{R}^m \otimes \mathbb{R}^n$)</h2>
         <p>Extracción de la matriz de intensidades en escala de grises $I_{i,j}$ a partir de la imagen alojada en el repositorio.</p>
+
+
         
 <div class="tensor-visualization">
-       <div class="canvas-container">
+            <div class="canvas-container">
                 <h3>Imagen Original</h3>
                 <img id="original-image-display" src="foto1.jpg" alt="Imagen original" style="max-width: 250px; border: 2px solid #2c3e50; border-radius: 4px;">
             </div>
 
             <div class="canvas-container">
-                <h3>Base (Redimensionada a 15x15)</h3>
+                <h3>Base ($T$)</h3>
                 <canvas id="image-canvas" width="15" height="15"></canvas>
             </div>
             
             <div class="matrix-container">
-                <h3>Matriz del Tensor ($I_{i,j}$)</h3>
+                <h3>Isomorfismo $\phi(T)$</h3>
                 <div id="tensor-grid" class="grid grid-dynamic"></div>
+            </div>
+
+            <div class="canvas-container">
+                <h3>Inverso $\phi^{-1}(M)$</h3>
+                <canvas id="inverse-canvas" width="15" height="15"></canvas>
+                <button onclick="applyInverseIsomorphism()" style="margin-top: 10px; font-size: 0.9em; padding: 5px 10px;">Reconstruir</button>
             </div>
         </div>
 
-        
-    </div>
+
+
+    
 
     <hr style="width: 80%; margin: 40px auto; border-top: 2px solid #ddd;">
 
