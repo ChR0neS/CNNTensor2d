@@ -225,5 +225,126 @@ function updateVisuals() {
     formulaDisplay.innerText = formulaText;
 }
 
+
+
+
+
+
+
 // Iniciar la simulación interactiva
 initConvolution();
+
+
+
+
+
+
+
+
+
+// ==========================================
+// MÓDULO 3: CONVOLUCIÓN SEPARABLE
+// ==========================================
+
+// Factorización del Filtro Sobel (3x3)
+// uData * vData generaría la matriz kernelData que usamos en el Módulo 2
+const uData = [[1], [2], [1]]; // Vector columna 3x1 (Eje Y)
+const vData = [[1, 0, -1]];    // Vector fila 1x3 (Eje X)
+
+let interData = Array(3).fill().map(() => Array(5).fill(0));
+let sepOutputData = Array(3).fill().map(() => Array(3).fill(0));
+let sepPhase = 0; // Control de fases: 0 (Inicio), 1 (Intermedio calculada), 2 (Salida calculada)
+
+function initSeparable() {
+    createGrid('sep-input-grid', inputData);
+    createGrid('u-grid', uData);
+    createGrid('inter-grid', interData, true);
+    
+    createGrid('inter-grid-2', interData, true);
+    createGrid('v-grid', vData);
+    createGrid('sep-output-grid', sepOutputData, true);
+}
+
+// Fase 1: Aplicación Lineal Vertical
+function calculateInter() {
+    for(let c = 0; c < 5; c++) { // Recorremos las 5 columnas
+        for(let r = 0; r < 3; r++) { // El resultado tendrá 3 filas
+            let sum = 0;
+            for(let i = 0; i < 3; i++) {
+                sum += inputData[r + i][c] * uData[i][0];
+            }
+            interData[r][c] = sum;
+        }
+    }
+}
+
+// Fase 2: Aplicación Lineal Horizontal
+function calculateSepOutput() {
+    for(let r = 0; r < 3; r++) { // Recorremos las 3 filas intermedias
+        for(let c = 0; c < 3; c++) { // El resultado final tendrá 3 columnas
+            let sum = 0;
+            for(let j = 0; j < 3; j++) {
+                sum += interData[r][c + j] * vData[0][j];
+            }
+            sepOutputData[r][c] = sum;
+        }
+    }
+}
+
+function nextSepPhase() {
+    if(sepPhase < 2) {
+        sepPhase++;
+        updateSepVisuals();
+    }
+}
+
+function prevSepPhase() {
+    if(sepPhase > 0) {
+        sepPhase--;
+        updateSepVisuals();
+    }
+}
+
+function updateSepVisuals() {
+    document.getElementById('btn-sep-prev').disabled = (sepPhase === 0);
+    document.getElementById('btn-sep-next').disabled = (sepPhase === 2);
+
+    // Calcular o resetear datos según la fase actual
+    if(sepPhase >= 1) calculateInter(); 
+    else interData = Array(3).fill().map(() => Array(5).fill(0));
+    
+    if(sepPhase >= 2) calculateSepOutput(); 
+    else sepOutputData = Array(3).fill().map(() => Array(3).fill(0));
+
+    // Re-renderizar las cuadrículas
+    createGrid('inter-grid', interData, sepPhase < 1);
+    createGrid('inter-grid-2', interData, sepPhase < 1);
+    createGrid('sep-output-grid', sepOutputData, sepPhase < 2);
+}
+
+// Inicializar el Módulo 3 cuando cargue la página
+window.addEventListener('load', () => {
+    initSeparable();
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
