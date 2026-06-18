@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <meta name="description" content="Investigación: Producto Tensorial en Procesamiento de Imágenes y Redes Neuronales">
-    <title>Producto Tensorial y CNNs </title>
+    <title>Producto Tensorial y CNNs - USIL</title>
     
     <link rel="stylesheet" href="style.css">
     
@@ -18,9 +16,9 @@
 </head>
 <body>
 
-    <header style="text-align: center; margin-bottom: 30px;">
+    <header class="header-main">
         <h1>Redes Neuronales Convolucionales (CNN)</h1>
-        <p style="font-size: 1.2em; color: #555;">Análisis de Tensores de Orden 2 en Procesamiento de Imágenes</p>
+        <p>Análisis de Tensores de Orden 2 en Procesamiento de Imágenes</p>
     </header>
 
     <div class="upload-section">
@@ -30,30 +28,30 @@
         <div class="tensor-visualization">
             <div class="canvas-container">
                 <h3>Imagen Original</h3>
-                <img id="original-image-display" src="foto1.jpg" alt="Imagen original" style="max-width: 250px; border: 2px solid #2c3e50; border-radius: 4px;">
+                <img id="original-image-display" src="foto1.jpg" alt="Cargando..." class="framed-image">
             </div>
 
             <div class="canvas-container">
                 <h3>Base ($T$)</h3>
-                <canvas id="image-canvas" width="15" height="15"></canvas>
+                <canvas id="image-canvas" width="15" height="15" class="pixel-canvas"></canvas>
             </div>
             
             <div class="matrix-container">
                 <h3>Isomorfismo $\phi(T)$</h3>
-                <div id="tensor-grid" class="grid grid-dynamic"></div>
+                <div id="tensor-grid" class="grid"></div>
             </div>
 
             <div class="canvas-container">
                 <h3>Inverso $\phi^{-1}(M)$</h3>
-                <canvas id="inverse-canvas" width="15" height="15"></canvas>
-                <button onclick="applyInverseIsomorphism()" style="margin-top: 10px; font-size: 0.9em; padding: 5px 10px;">Reconstruir</button>
+                <canvas id="inverse-canvas" width="15" height="15" class="pixel-canvas"></canvas>
+                <button onclick="applyInverseIsomorphism()" class="btn-small">Reconstruir</button>
             </div>
         </div>
     </div>
 
-    <hr style="width: 80%; margin: 40px auto; border-top: 2px solid #ddd;">
+    <hr class="divider">
 
-    <h2>2. Operación de Convolución 2D Estándar</h2>
+    <h2>2. Operación de Convolución (Correlación Cruzada)</h2>
     <p>Tensor de Entrada (5x5) * Filtro (3x3) = Mapa de Características (3x3)</p>
 
     <div class="container">
@@ -82,74 +80,73 @@
         Haz clic en "Siguiente Paso" para comenzar el cálculo.
     </div>
 
-    <hr style="width: 80%; margin: 40px auto; border-top: 2px solid #ddd;">
+    <hr class="divider">
         
     <h2>3. Convolución Separable sobre la Imagen ($K = u \otimes v$)</h2>
-    <p>Aplicando la factorización tensorial sobre la matriz real ($15 \times 15$) extraída de la fotografía.</p>
+    <p>Demostración visual procesando la imagen de 15x15 sin números, visualizando el mapa de características resultante.</p>
 
     <div class="container">
-        <div class="matrix-container" style="overflow-x: auto;">
+        <div class="matrix-container">
             <h3>Tensor Entrada (15x15)</h3>
             <div id="sep-input-grid" class="grid"></div>
         </div>
         <div class="matrix-container">
             <h3>Filtro $u$ (3x1)</h3>
-            <div id="u-grid" class="grid" style="grid-template-columns: repeat(1, 1fr);"></div>
+            <div id="u-grid" class="grid grid-3x1"></div>
         </div>
-        <div class="matrix-container" style="overflow-x: auto;">
+        <div class="matrix-container">
             <h3>Intermedio (13x15)</h3>
             <div id="inter-grid" class="grid"></div>
         </div>
     </div>
 
     <div class="container" style="margin-top: 20px;">
-        <div class="matrix-container" style="overflow-x: auto;">
+        <div class="matrix-container">
             <h3>Intermedio (13x15)</h3>
             <div id="inter-grid-2" class="grid"></div>
         </div>
         <div class="matrix-container">
             <h3>Filtro $v$ (1x3)</h3>
-            <div id="v-grid" class="grid" style="grid-template-columns: repeat(3, 1fr);"></div>
+            <div id="v-grid" class="grid grid-1x3"></div>
         </div>
-        <div class="matrix-container" style="overflow-x: auto;">
+        <div class="matrix-container">
             <h3>Salida Final (13x13)</h3>
             <div id="sep-output-grid" class="grid"></div>
         </div>
     </div>
 
-    <div class="controls" style="margin-bottom: 50px;">
+    <div class="controls">
         <button id="btn-sep-prev" onclick="prevSepPhase()" disabled>Deshacer Fase</button>
         <button id="btn-sep-next" onclick="nextSepPhase()">Ejecutar Fase</button>
     </div>
 
-    <hr style="width: 80%; margin: 40px auto; border-top: 2px solid #ddd;">
+    <hr class="divider">
 
     <h2>4. Compresión Tensorial via SVD ($M \approx \sum_{i=1}^k \sigma_i u_i \otimes v_i$)</h2>
-    <p>Reconstrucción de la matriz mediante truncación de valores singulares. Observa el impacto de cada producto tensorial de rango 1.</p>
+    <p>Reconstrucción de la matriz mediante truncación de valores singulares.</p>
 
     <div class="slider-container">
         <label for="svd-slider">Rango de truncación ($k$): <span id="k-value">1</span></label>
         <input type="range" id="svd-slider" min="1" max="15" value="1" oninput="updateSVD()">
+        <p id="svd-status" style="color:#d63031; font-weight:bold;"></p>
     </div>
 
     <div class="tensor-visualization" style="margin-bottom: 50px;">
         <div class="canvas-container">
-            <h3>Imagen Original ($T$)</h3>
-            <canvas id="svd-original-canvas" width="15" height="15" style="width: 150px; height: 150px; image-rendering: pixelated; border: 1px solid #ccc;"></canvas>
+            <h3>Original ($T$)</h3>
+            <canvas id="svd-original-canvas" width="15" height="15" class="pixel-canvas-large"></canvas>
         </div>
 
         <div class="canvas-container">
             <h3>Reconstrucción ($M_k$)</h3>
-            <canvas id="svd-recon-canvas" width="15" height="15" style="width: 150px; height: 150px; image-rendering: pixelated; border: 1px solid #ccc;"></canvas>
+            <canvas id="svd-recon-canvas" width="15" height="15" class="pixel-canvas-large"></canvas>
         </div>
         
         <div class="canvas-container">
-            <h3>Tensor Rango 1 Actual ($\sigma_k u_k v_k^T$)</h3>
-            <canvas id="svd-component-canvas" width="15" height="15" style="width: 150px; height: 150px; image-rendering: pixelated; border: 1px solid #ccc;"></canvas>
+            <h3>Tensor Rango 1 ($\sigma_k u_k v_k^T$)</h3>
+            <canvas id="svd-component-canvas" width="15" height="15" class="pixel-canvas-large"></canvas>
         </div>
     </div>
-
-   
 
     <script src="script.js"></script>
 </body>
