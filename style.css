@@ -6,12 +6,23 @@ body {
     flex-direction: column;
     align-items: center;
     padding: 20px;
+    margin: 0;
 }
 
-h1 { 
+h1, h2, h3 { 
     color: #2c3e50; 
 }
 
+h2 {
+    margin-top: 10px;
+}
+
+p {
+    text-align: center;
+    max-width: 800px;
+}
+
+/* Contenedores Flexibles */
 .container {
     display: flex;
     gap: 40px;
@@ -20,12 +31,22 @@ h1 {
     justify-content: center;
 }
 
-.matrix-container {
+.tensor-visualization {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.matrix-container, .canvas-container {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
+/* Grillas Matemáticas */
 .grid {
     display: grid;
     gap: 4px;
@@ -47,15 +68,16 @@ h1 {
     transition: background-color 0.3s;
 }
 
-/* Tamaños de las cuadrículas */
+/* Tamaños estáticos */
 .grid-5x5 { grid-template-columns: repeat(5, 1fr); }
 .grid-3x3 { grid-template-columns: repeat(3, 1fr); }
 
-/* Resaltados */
+/* Resaltados Dinámicos (Módulo 2) */
 .highlight-input { background-color: #ffeaa7; }
 .highlight-kernel { background-color: #74b9ff; color: white;}
 .highlight-output { background-color: #55efc4; }
 
+/* Controles y Botones */
 .controls {
     margin-top: 30px;
     display: flex;
@@ -77,6 +99,7 @@ button {
 button:hover { background-color: #074b83; }
 button:disabled { background-color: #b2bec3; cursor: not-allowed; }
 
+/* Caja de Fórmulas */
 .formula-box {
     margin-top: 30px;
     padding: 15px;
@@ -88,23 +111,20 @@ button:disabled { background-color: #b2bec3; cursor: not-allowed; }
     font-size: 1.2em;
     min-width: 300px;
     text-align: center;
+}
 
-/* Nuevas cuadrículas para Módulo 3 (Filtros Separables) */
-.grid-3x1 { grid-template-columns: repeat(1, 1fr); }
-.grid-1x3 { grid-template-columns: repeat(3, 1fr); }
-.grid-3x5 { grid-template-columns: repeat(5, 1fr); }
+/* Contenedor del Deslizador (Slider) para SVD */
+.slider-container {
+    margin: 20px 0;
+    font-size: 1.1em;
+    font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-    
+input[type="range"] {
+    width: 300px;
+    cursor: pointer;
 }
