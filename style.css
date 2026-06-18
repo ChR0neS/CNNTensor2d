@@ -1,397 +1,103 @@
-// ==========================================
-// MÓDULO 1: IMAGEN A TENSOR
-// ==========================================
-const canvas = document.getElementById('image-canvas');
-const ctx = canvas.getContext('2d');
-const tensorGrid = document.getElementById('tensor-grid');
-
-const M = 15; 
-const N = 15;
-
-// Variable global para almacenar el tensor (Matriz Matemática)
-let tensorMatrix = Array(M).fill().map(() => Array(N).fill(0));
-
-window.addEventListener('load', () => {
-    const img = new Image();
-    img.crossOrigin = "Anonymous"; 
-    img.src = 'foto1.jpg'; 
-
-    img.onload = function() {
-        ctx.clearRect(0, 0, M, N);
-        ctx.drawImage(img, 0, 0, M, N);
-        extractTensorData(); 
-    }
-
-    img.onerror = function() {
-        if(tensorGrid) {
-            tensorGrid.innerHTML = '<p style="color:#d63031; background:#ffeaa7; padding: 10px; border-radius: 4px;">Error: No se encontró la imagen. Verifica que el archivo se llame exactamente "foto1.jpg".</p>';
-        }
-    }
-});
-
-function extractTensorData() {
-    const imageData = ctx.getImageData(0, 0, M, N).data;
-    tensorGrid.innerHTML = ''; 
-    tensorGrid.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
-
-    for (let i = 0; i < M; i++) {
-        for (let j = 0; j < N; j++) {
-            const index = (i * N + j) * 4;
-            const r = imageData[index];
-            const g = imageData[index + 1];
-            const b = imageData[index + 2];
-            
-            let gray = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
-            
-            // 1. Isomorfismo matricial: Guardar escalar en matriz pura
-            tensorMatrix[i][j] = gray;
-            
-            // 2. Renderizado en web
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            
-            // Ajustar fuente para que quepa la matriz de 15x15
-            cell.style.fontSize = '0.7em';
-            cell.style.width = '20px';
-            cell.style.height = '20px';
-
-            cell.innerText = gray;
-            cell.style.backgroundColor = `rgb(${gray}, ${gray}, ${gray})`;
-            cell.style.color = gray < 128 ? 'white' : 'black';
-            tensorGrid.appendChild(cell);
-        }
-    }
-
-    // Inicializar módulos dependientes de la imagen
-    initSeparable();
-    initSVD();
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
 }
 
-function applyInverseIsomorphism() {
-    const invCanvas = document.getElementById('inverse-canvas');
-    if (!invCanvas) return;
-    const invCtx = invCanvas.getContext('2d');
-    
-    invCtx.clearRect(0, 0, M, N);
+.header-main { text-align: center; margin-bottom: 30px; }
+h1, h2, h3 { color: #2c3e50; }
+p { text-align: center; max-width: 800px; }
 
-    for (let i = 0; i < M; i++) {
-        for (let j = 0; j < N; j++) {
-            const intensity = tensorMatrix[i][j];
-            invCtx.fillStyle = `rgb(${intensity}, ${intensity}, ${intensity})`;
-            invCtx.fillRect(j, i, 1, 1);
-        }
-    }
+.divider { width: 80%; margin: 40px auto; border-top: 2px solid #ddd; }
+
+.container, .tensor-visualization {
+    display: flex;
+    gap: 30px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
 }
 
-// ==========================================
-// MÓDULO 2: CONVOLUCIÓN INTERACTIVA
-// ==========================================
-const inputData = [
-    [2, 1, 0, 2, 1],
-    [0, 1, 2, 1, 0],
-    [1, 0, 1, 2, 1],
-    [2, 1, 0, 0, 1],
-    [1, 1, 2, 1, 0]
-];
-
-const kernelData = [
-    [1, 0, -1],
-    [1, 0, -1],
-    [1, 0, -1]
-];
-
-let outputData = Array(3).fill().map(() => Array(3).fill(0));
-let currentStep = -1; 
-const maxSteps = 9;   
-
-function createGrid(containerId, data, isOutput = false) {
-    const container = document.getElementById(containerId);
-    if(!container) return;
-    
-    container.innerHTML = '';
-    data.forEach((row, i) => {
-        row.forEach((val, j) => {
-            const div = document.createElement('div');
-            div.className = 'cell';
-            div.id = `${containerId}-${i}-${j}`;
-            div.innerText = (isOutput && val === 0 && currentStep === -1) ? '' : val;
-            container.appendChild(div);
-        });
-    });
+.matrix-container, .canvas-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-function initConvolution() {
-    createGrid('input-grid', inputData);
-    createGrid('kernel-grid', kernelData);
-    createGrid('output-grid', outputData, true);
-    updateVisuals();
+/* Lienzos (Canvas) e Imágenes */
+.framed-image { max-width: 200px; border: 2px solid #2c3e50; border-radius: 4px; }
+.pixel-canvas { width: 200px; height: 200px; image-rendering: pixelated; border: 2px solid #2c3e50; border-radius: 4px; }
+.pixel-canvas-large { width: 180px; height: 180px; image-rendering: pixelated; border: 1px solid #ccc; background-color: #fff;}
+
+/* Cuadrículas base */
+.grid {
+    display: grid;
+    gap: 2px;
+    background-color: #bdc3c7;
+    padding: 4px;
+    border-radius: 6px;
 }
 
-function nextStep() {
-    if (currentStep < maxSteps - 1) {
-        currentStep++;
-        calculateCurrentStep();
-        updateVisuals();
-    }
+/* Celda estándar (Para Mod 2, 5x5 y 3x3) */
+.cell {
+    width: 40px;
+    height: 40px;
+    background-color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1.1em;
+    border-radius: 4px;
+    transition: background-color 0.3s;
 }
 
-function prevStep() {
-    if (currentStep >= 0) {
-        const outRow = Math.floor(currentStep / 3);
-        const outCol = currentStep % 3;
-        outputData[outRow][outCol] = 0; 
-        
-        currentStep--;
-        updateVisuals();
-    }
+/* Celda pequeña (Para Mod 1, la de tu código original adaptada a 15x15) */
+.cell-small {
+    width: 22px;
+    height: 22px;
+    font-size: 0.65em;
+    font-weight: bold;
 }
 
-function calculateCurrentStep() {
-    if (currentStep === -1) return;
-    const outRow = Math.floor(currentStep / 3);
-    const outCol = currentStep % 3;
-    
-    let sum = 0;
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            sum += inputData[outRow + i][outCol + j] * kernelData[i][j];
-        }
-    }
-    outputData[outRow][outCol] = sum;
+/* Celda visual (Para Mod 3, sin números, pura imagen) */
+.cell-visual {
+    width: 18px;
+    height: 18px;
 }
 
-function updateVisuals() {
-    const btnPrev = document.getElementById('btn-prev');
-    const btnNext = document.getElementById('btn-next');
-    const formulaDisplay = document.getElementById('formula-display');
-    
-    if(!btnPrev || !btnNext || !formulaDisplay) return;
+/* Estructuras estáticas CSS */
+.grid-5x5 { grid-template-columns: repeat(5, 1fr); }
+.grid-3x3 { grid-template-columns: repeat(3, 1fr); }
+.grid-3x1 { grid-template-columns: repeat(1, 1fr); }
+.grid-1x3 { grid-template-columns: repeat(3, 1fr); }
 
-    btnPrev.disabled = currentStep === -1;
-    btnNext.disabled = currentStep === maxSteps - 1;
+/* Resaltados (Mod 2) */
+.highlight-input { background-color: #ffeaa7 !important; }
+.highlight-kernel { background-color: #74b9ff !important; color: white;}
+.highlight-output { background-color: #55efc4 !important; }
 
-    document.querySelectorAll('.highlight-input, .highlight-kernel, .highlight-output').forEach(c => {
-        c.classList.remove('highlight-input', 'highlight-kernel', 'highlight-output');
-    });
+/* Controles */
+.controls { margin-top: 30px; display: flex; gap: 15px; justify-content: center;}
+button {
+    padding: 10px 20px; font-size: 1em; cursor: pointer; border: none;
+    border-radius: 5px; background-color: #0984e3; color: white; font-weight: bold;
+}
+button:hover { background-color: #074b83; }
+button:disabled { background-color: #b2bec3; cursor: not-allowed; }
+.btn-small { margin-top: 10px; font-size: 0.8em; padding: 5px 10px; }
 
-    createGrid('output-grid', outputData, true);
-
-    if (currentStep === -1) {
-        formulaDisplay.innerText = 'Haz clic en "Siguiente Paso" para comenzar el cálculo.';
-        return;
-    }
-
-    const outRow = Math.floor(currentStep / 3);
-    const outCol = currentStep % 3;
-    let formulaText = `S(${outRow},${outCol}) = `;
-    
-    for(let r=0; r<3; r++){
-        for(let c=0; c<3; c++){
-            const kCell = document.getElementById(`kernel-grid-${r}-${c}`);
-            if(kCell) kCell.classList.add('highlight-kernel');
-        }
-    }
-
-    let terms = [];
-    for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-            const inR = outRow + i;
-            const inC = outCol + j;
-            const iCell = document.getElementById(`input-grid-${inR}-${inC}`);
-            if(iCell) iCell.classList.add('highlight-input');
-            
-            const valIn = inputData[inR][inC];
-            const valKer = kernelData[i][j];
-            terms.push(`(${valIn}×${valKer})`);
-        }
-    }
-    
-    const oCell = document.getElementById(`output-grid-${outRow}-${outCol}`);
-    if(oCell) oCell.classList.add('highlight-output');
-    
-    formulaText += terms.join(' + ') + ` = ${outputData[outRow][outCol]}`;
-    formulaDisplay.innerText = formulaText;
+.formula-box {
+    margin-top: 30px; padding: 15px; background-color: white;
+    border-left: 5px solid #0984e3; border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-family: monospace;
+    font-size: 1.2em; min-width: 300px; text-align: center;
 }
 
-initConvolution();
-
-// ==========================================
-// MÓDULO 3: CONVOLUCIÓN SEPARABLE
-// ==========================================
-const uData = [[1], [2], [1]]; 
-const vData = [[1, 0, -1]];    
-
-let interData = Array(13).fill().map(() => Array(15).fill(0));
-let sepOutputData = Array(13).fill().map(() => Array(13).fill(0));
-let sepPhase = 0; 
-
-function createDynamicGrid(containerId, data, isOutput = false) {
-    const container = document.getElementById(containerId);
-    if(!container) return;
-    
-    container.innerHTML = '';
-    container.style.gridTemplateColumns = `repeat(${data[0].length}, 1fr)`;
-    
-    data.forEach((row, i) => {
-        row.forEach((val, j) => {
-            const div = document.createElement('div');
-            div.className = 'cell';
-            div.style.fontSize = '0.7em'; 
-            div.style.padding = '2px';
-            div.style.width = '20px';
-            div.style.height = '20px';
-            
-            div.innerText = (isOutput && val === 0 && sepPhase === 0) ? '' : val;
-            
-            if (!(isOutput && val === 0 && sepPhase === 0)) {
-                let intensity = Math.min(Math.max(Math.abs(val), 0), 255);
-                div.style.backgroundColor = `rgb(${intensity}, ${intensity}, ${intensity})`;
-                div.style.color = intensity < 128 ? 'white' : 'black';
-            }
-            
-            container.appendChild(div);
-        });
-    });
-}
-
-function initSeparable() {
-    createDynamicGrid('sep-input-grid', tensorMatrix); 
-    
-    const uContainer = document.getElementById('u-grid');
-    if(uContainer) uContainer.innerHTML = '<div class="cell">1</div><div class="cell">2</div><div class="cell">1</div>';
-    
-    const vContainer = document.getElementById('v-grid');
-    if(vContainer) vContainer.innerHTML = '<div class="cell">1</div><div class="cell">0</div><div class="cell">-1</div>';
-
-    createDynamicGrid('inter-grid', interData, true);
-    createDynamicGrid('inter-grid-2', interData, true);
-    createDynamicGrid('sep-output-grid', sepOutputData, true);
-}
-
-function calculateInter() {
-    for(let c = 0; c < 15; c++) { 
-        for(let r = 0; r < 13; r++) { 
-            let sum = 0;
-            for(let i = 0; i < 3; i++) {
-                sum += tensorMatrix[r + i][c] * uData[i][0];
-            }
-            interData[r][c] = sum;
-        }
-    }
-}
-
-function calculateSepOutput() {
-    for(let r = 0; r < 13; r++) { 
-        for(let c = 0; c < 13; c++) { 
-            let sum = 0;
-            for(let j = 0; j < 3; j++) {
-                sum += interData[r][c + j] * vData[0][j];
-            }
-            sepOutputData[r][c] = sum;
-        }
-    }
-}
-
-function nextSepPhase() {
-    if(sepPhase < 2) {
-        sepPhase++;
-        updateSepVisuals();
-    }
-}
-
-function prevSepPhase() {
-    if(sepPhase > 0) {
-        sepPhase--;
-        updateSepVisuals();
-    }
-}
-
-function updateSepVisuals() {
-    document.getElementById('btn-sep-prev').disabled = (sepPhase === 0);
-    document.getElementById('btn-sep-next').disabled = (sepPhase === 2);
-
-    if(sepPhase >= 1) calculateInter(); 
-    else interData = Array(13).fill().map(() => Array(15).fill(0));
-    
-    if(sepPhase >= 2) calculateSepOutput(); 
-    else sepOutputData = Array(13).fill().map(() => Array(13).fill(0));
-
-    createDynamicGrid('inter-grid', interData, sepPhase < 1);
-    createDynamicGrid('inter-grid-2', interData, sepPhase < 1);
-    createDynamicGrid('sep-output-grid', sepOutputData, sepPhase < 2);
-}
-
-// ==========================================
-// MÓDULO 4: SVD Y COMPRESIÓN TENSORIAL
-// ==========================================
-
-let svdU, svdS, svdV;
-
-function initSVD() {
-    const svd = numeric.svd(tensorMatrix);
-    svdU = svd.U; 
-    svdS = svd.S; 
-    svdV = svd.V; 
-
-    drawMatrixToCanvas('svd-original-canvas', tensorMatrix, false);
-    updateSVD();
-}
-
-function updateSVD() {
-    const k = parseInt(document.getElementById('svd-slider').value);
-    document.getElementById('k-value').innerText = k;
-
-    let reconMatrix = Array(M).fill().map(() => Array(N).fill(0));
-    let currentRank1Matrix = Array(M).fill().map(() => Array(N).fill(0));
-
-    for (let i = 0; i < k; i++) {
-        let sigma = svdS[i];
-        
-        for (let r = 0; r < M; r++) {
-            for (let c = 0; c < N; c++) {
-                let val = sigma * svdU[r][i] * svdV[c][i];
-                reconMatrix[r][c] += val;
-                
-                if (i === k - 1) {
-                    currentRank1Matrix[r][c] = val;
-                }
-            }
-        }
-    }
-
-    drawMatrixToCanvas('svd-recon-canvas', reconMatrix, false);
-    drawMatrixToCanvas('svd-component-canvas', currentRank1Matrix, true);
-}
-
-function drawMatrixToCanvas(canvasId, matrix, normalize = false) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    let min = Infinity, max = -Infinity;
-    
-    if (normalize) {
-        for (let r = 0; r < M; r++) {
-            for (let c = 0; c < N; c++) {
-                if (matrix[r][c] < min) min = matrix[r][c];
-                if (matrix[r][c] > max) max = matrix[r][c];
-            }
-        }
-    }
-
-    for (let r = 0; r < M; r++) {
-        for (let c = 0; c < N; c++) {
-            let val = matrix[r][c];
-            let intensity;
-            
-            if (normalize) {
-                intensity = (max === min) ? 128 : Math.round(255 * (val - min) / (max - min));
-            } else {
-                intensity = Math.max(0, Math.min(255, Math.round(val)));
-            }
-            
-            ctx.fillStyle = `rgb(${intensity}, ${intensity}, ${intensity})`;
-            ctx.fillRect(c, r, 1, 1);
-        }
-    }
-}
+.slider-container { margin: 20px 0; font-size: 1.1em; font-weight: bold; text-align: center; }
+input[type="range"] { width: 300px; cursor: pointer; }
